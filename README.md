@@ -2,10 +2,7 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D18-brightgreen.svg)](package.json)
-[![Statements](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jacksonbicalho/mcp-app/master/.github/badges/statements.json)](COVERAGE.md)
-[![Branches](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jacksonbicalho/mcp-app/master/.github/badges/branches.json)](COVERAGE.md)
-[![Functions](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jacksonbicalho/mcp-app/master/.github/badges/functions.json)](COVERAGE.md)
-[![Lines](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jacksonbicalho/mcp-app/master/.github/badges/lines.json)](COVERAGE.md)
+[![Coverage](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/jacksonbicalho/mcp-app/master/.github/badges/coverage.json)](COVERAGE.md)
 
 Dar a um agente de IA (Cursor, Claude Desktop) acesso direto e seguro ao contexto real de um sistema — schema do banco, código-fonte, tickets, logs e merge requests — sem que ele precise adivinhar ou você precise copiar/colar tudo manualmente a cada pergunta. Este é um servidor MCP (Model Context Protocol) construído com NestJS que expõe esse contexto do sistema App como um conjunto de ferramentas: banco de dados PostgreSQL, código-fonte, tickets Jira, logs no Kibana e merge requests no GitLab.
 
