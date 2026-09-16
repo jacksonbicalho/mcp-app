@@ -62,6 +62,11 @@ jobs:
       # teardown do Jest quando a cobertura sobe (ver scripts/coverage-teardown.ts).
       # Esse passo commita essa atualização de volta — só em push direto (não em
       # PR, onde não faz sentido/nem sempre há permissão de escrita).
+      #
+      # master é protegida (só aceita push via PR aprovado); o GITHUB_TOKEN
+      # padrão não tem privilégio de bypass. Por isso usamos aqui um PAT do
+      # próprio dono do repo (secret COVERAGE_RATCHET_PAT) só pra este push —
+      # o restante do job continua com o GITHUB_TOKEN de sempre.
       - name: Commitar ratchet de cobertura atualizado
         if: github.event_name == 'push'
         run: |
@@ -70,7 +75,7 @@ jobs:
           git add coverage.config.json COVERAGE.md
           if ! git diff --cached --quiet; then
             git commit -m "chore: atualiza threshold de cobertura [skip ci]"
-            git push origin HEAD:${{ github.ref_name }}
+            git push "https://x-access-token:${{ secrets.COVERAGE_RATCHET_PAT }}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref_name }}
           else
             echo "Cobertura sem mudanças; nada para commitar."
           fi
