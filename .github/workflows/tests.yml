@@ -1,8 +1,6 @@
 name: Tests
 
 on:
-  push:
-    branches: [master]
   pull_request:
     branches: [master]
 
@@ -14,6 +12,8 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref }}
 
       - uses: actions/setup-node@v4
         with:
@@ -49,7 +49,7 @@ jobs:
       # automaticamente em vez de deixá-lo pendente — a intenção é forçar
       # reabertura de um PR novo já corrigido, em vez de reaproveitar este.
       - name: Fechar PR automaticamente se o CI falhou
-        if: failure() && github.event_name == 'pull_request'
+        if: failure()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -58,19 +58,24 @@ jobs:
             --body "❌ O CI falhou (lint, formatação, build ou testes). Fechando este PR automaticamente — corrija e abra um novo PR."
           gh pr close "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}"
 
-      # coverage.config.json e COVERAGE.md são atualizados localmente pelo
-      # teardown do Jest quando a cobertura sobe (ver scripts/coverage-teardown.ts).
-      # master não aceita push direto (nem de admin) — então esse passo abre um
-      # PR com a atualização, em vez de commitar direto. Só dispara quando o
-      # THRESHOLD (coverage.config.json) muda de verdade, não a cada run —
-      # senão o timestamp do COVERAGE.md sozinho abriria um PR por push.
+      # coverage.config.json/COVERAGE.md/.github/badges são atualizados
+      # localmente pelo teardown do Jest quando a cobertura sobe (ver
+      # scripts/coverage-teardown.ts). Quando o THRESHOLD muda de verdade
+      # (não só o timestamp do COVERAGE.md), commita direto nesta branch do
+      # PR — a atualização de cobertura vira parte do mesmo PR, revisada e
+      # mergeada junto, em vez de um PR novo depois do merge (que exigiria
+      # rodar o CI de novo sobre uma master que já "passou").
       #
-      # Usa o PAT do dono do repo (secret COVERAGE_RATCHET_PAT), não o
-      # GITHUB_TOKEN padrão: um PR aberto com o GITHUB_TOKEN padrão não
-      # dispara outros workflows (proteção contra loop infinito do próprio
-      # GitHub Actions), então o check "test" nunca rodaria nesse PR.
-      - name: Abrir PR com ratchet de cobertura atualizado
-        if: github.event_name == 'push'
+      # `if: success()` de propósito: sem isso, um `if` customizado substitui
+      # (não soma) o default do GitHub Actions de só rodar se os passos
+      # anteriores passaram.
+      #
+      # Usa o PAT do dono (secret COVERAGE_RATCHET_PAT) em vez do GITHUB_TOKEN
+      # padrão: um push feito com o token padrão não dispara um novo
+      # `synchronize` (proteção do próprio Actions contra loop infinito), e
+      # sem isso o check "test" nunca rodaria de novo pra validar esse commit.
+      - name: Commitar ratchet de cobertura na própria branch do PR
+        if: success()
         env:
           GH_TOKEN: ${{ secrets.COVERAGE_RATCHET_PAT }}
         run: |
@@ -82,16 +87,8 @@ jobs:
 
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          BRANCH="chore/coverage-ratchet-${{ github.run_id }}"
-          git checkout -b "$BRANCH"
           git commit -m "chore: atualiza threshold de cobertura"
 
           # Ver comentário acima sobre o extraheader do checkout.
           git -c http.https://github.com/.extraheader= \
-            push "https://x-access-token:${{ secrets.COVERAGE_RATCHET_PAT }}@github.com/${{ github.repository }}.git" "$BRANCH"
-
-          gh pr create --repo "${{ github.repository }}" \
-            --base master --head "$BRANCH" \
-            --title "chore: atualiza threshold de cobertura" \
-            --body "Atualização automática de \`coverage.config.json\`/\`COVERAGE.md\` gerada por \`yarn test:cov\` após ${{ github.sha }}."
+            push "https://x-access-token:${{ secrets.COVERAGE_RATCHET_PAT }}@github.com/${{ github.repository }}.git" HEAD:${{ github.event.pull_request.head.ref }}
