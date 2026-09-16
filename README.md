@@ -382,9 +382,11 @@ yarn test:cov    # com cobertura
 e o Jest falha se a cobertura cair abaixo dele. Quando a cobertura sobe, um
 `globalTeardown` ([`scripts/coverage-teardown.ts`](scripts/coverage-teardown.ts))
 sobe o threshold automaticamente (nunca desce sozinho) e regrava
-[`COVERAGE.md`](COVERAGE.md) com o detalhamento por arquivo. No CI
-([`.github/workflows/tests.yml`](.github/workflows/tests.yml)), essa atualização
-é commitada de volta automaticamente em push para `master`.
+[`COVERAGE.md`](COVERAGE.md) e os badges em [`.github/badges/`](.github/badges)
+com o detalhamento atualizado. No CI ([`.github/workflows/tests.yml`](.github/workflows/tests.yml)),
+quando essa atualização muda o threshold de verdade, ela é commitada de volta
+automaticamente na própria branch do PR (antes do merge) — o bump de cobertura
+faz parte do mesmo PR, não um PR separado depois.
 
 ## Segurança
 
