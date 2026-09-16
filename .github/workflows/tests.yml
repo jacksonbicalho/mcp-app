@@ -37,6 +37,14 @@ jobs:
       - name: Testes com cobertura (aplica o ratchet de coverage.config.json)
         run: yarn test:cov
 
+      - name: Publicar relatório de cobertura (diagnóstico em caso de falha)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 5
+
       # Se lint/formatação/build/testes falharem neste PR, fecha o PR
       # automaticamente em vez de deixá-lo pendente — a intenção é forçar
       # reabertura de um PR novo já corrigido, em vez de reaproveitar este.
