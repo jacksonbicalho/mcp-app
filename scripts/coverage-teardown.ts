@@ -8,7 +8,7 @@
 //   3. Regrava COVERAGE.md com o relatório atualizado.
 import * as fs from 'fs';
 import * as path from 'path';
-import { buildCoverageMarkdown } from './coverage-report';
+import { buildCoverageBadges, buildCoverageMarkdown } from './coverage-report';
 
 interface Totals {
   lines: number;
@@ -53,4 +53,14 @@ export default async function globalTeardown(): Promise<void> {
 
   const markdown = buildCoverageMarkdown(summary, rootDir);
   fs.writeFileSync(path.join(rootDir, 'COVERAGE.md'), markdown);
+
+  // Badges dinâmicos do shields.io (formato "endpoint") — o README aponta
+  // pra esses JSONs via raw.githubusercontent.com; só o conteúdo deles muda
+  // a cada rodada, a URL no README nunca precisa ser editada de novo.
+  const badgesDir = path.join(rootDir, '.github', 'badges');
+  fs.mkdirSync(badgesDir, { recursive: true });
+  const badges = buildCoverageBadges(summary.total);
+  for (const [metric, badge] of Object.entries(badges)) {
+    fs.writeFileSync(path.join(badgesDir, `${metric}.json`), JSON.stringify(badge, null, 2) + '\n');
+  }
 }
