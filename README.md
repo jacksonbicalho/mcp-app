@@ -194,7 +194,7 @@ Após alterar o código, rode `yarn build` e **reinicie** o servidor MCP no clie
 
 ## Configuração no Cursor / Claude Desktop
 
-**Um processo = um MCP.** Não cadastre `mcp-app-development` e `mcp-app-staging` ao mesmo tempo — são filhos com as mesmas tools. As credenciais ficam em `environments.json`; o cliente só sobe o processo. Veja [`cursor-mcp-config.example.json`](cursor-mcp-config.example.json).
+**Um processo = um MCP.** Não cadastre `mcp-app-development` e `mcp-app-staging` ao mesmo tempo — são filhos com as mesmas tools. As credenciais ficam em `environments.json`; o cliente só sobe o processo. Veja [`mcp-config.example.json`](mcp-config.example.json).
 
 ```json
 {
@@ -355,7 +355,7 @@ mcp-app/
 ├── COVERAGE.md                    # gerado por `yarn test:cov`, não editar
 ├── jest.config.ts
 ├── jest.setup.ts
-├── cursor-mcp-config.example.json
+├── mcp-config.example.json
 ├── environments.json              # Não versionar — credenciais por ambiente
 ├── environments.example.json
 ├── .env                           # Não versionar
