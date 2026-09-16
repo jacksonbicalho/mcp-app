@@ -60,26 +60,38 @@ jobs:
 
       # coverage.config.json e COVERAGE.md são atualizados localmente pelo
       # teardown do Jest quando a cobertura sobe (ver scripts/coverage-teardown.ts).
-      # Esse passo commita essa atualização de volta — só em push direto (não em
-      # PR, onde não faz sentido/nem sempre há permissão de escrita).
+      # master não aceita push direto (nem de admin) — então esse passo abre um
+      # PR com a atualização, em vez de commitar direto. Só dispara quando o
+      # THRESHOLD (coverage.config.json) muda de verdade, não a cada run —
+      # senão o timestamp do COVERAGE.md sozinho abriria um PR por push.
       #
-      # master é protegida (só aceita push via PR aprovado); o GITHUB_TOKEN
-      # padrão não tem privilégio de bypass. Por isso usamos aqui um PAT do
-      # próprio dono do repo (secret COVERAGE_RATCHET_PAT) só pra este push —
-      # o restante do job continua com o GITHUB_TOKEN de sempre.
-      - name: Commitar ratchet de cobertura atualizado
+      # Usa o PAT do dono do repo (secret COVERAGE_RATCHET_PAT), não o
+      # GITHUB_TOKEN padrão: um PR aberto com o GITHUB_TOKEN padrão não
+      # dispara outros workflows (proteção contra loop infinito do próprio
+      # GitHub Actions), então o check "test" nunca rodaria nesse PR.
+      - name: Abrir PR com ratchet de cobertura atualizado
         if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ secrets.COVERAGE_RATCHET_PAT }}
         run: |
+          git add coverage.config.json COVERAGE.md
+          if git diff --cached --quiet -- coverage.config.json; then
+            echo "Threshold de cobertura sem mudança; nada para commitar."
+            exit 0
+          fi
+
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add coverage.config.json COVERAGE.md
-          if ! git diff --cached --quiet; then
-            git commit -m "chore: atualiza threshold de cobertura [skip ci]"
-            # actions/checkout deixa um header de auth (com o GITHUB_TOKEN padrão)
-            # configurado localmente, que tem prioridade sobre as credenciais da
-            # URL abaixo — precisa ser zerado nesta chamada pra valer o PAT.
-            git -c http.https://github.com/.extraheader= \
-              push "https://x-access-token:${{ secrets.COVERAGE_RATCHET_PAT }}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref_name }}
-          else
-            echo "Cobertura sem mudanças; nada para commitar."
-          fi
+
+          BRANCH="chore/coverage-ratchet-${{ github.run_id }}"
+          git checkout -b "$BRANCH"
+          git commit -m "chore: atualiza threshold de cobertura"
+
+          # Ver comentário acima sobre o extraheader do checkout.
+          git -c http.https://github.com/.extraheader= \
+            push "https://x-access-token:${{ secrets.COVERAGE_RATCHET_PAT }}@github.com/${{ github.repository }}.git" "$BRANCH"
+
+          gh pr create --repo "${{ github.repository }}" \
+            --base master --head "$BRANCH" \
+            --title "chore: atualiza threshold de cobertura" \
+            --body "Atualização automática de \`coverage.config.json\`/\`COVERAGE.md\` gerada por \`yarn test:cov\` após ${{ github.sha }}."
