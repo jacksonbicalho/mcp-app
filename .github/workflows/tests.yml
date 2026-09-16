@@ -75,7 +75,11 @@ jobs:
           git add coverage.config.json COVERAGE.md
           if ! git diff --cached --quiet; then
             git commit -m "chore: atualiza threshold de cobertura [skip ci]"
-            git push "https://x-access-token:${{ secrets.COVERAGE_RATCHET_PAT }}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref_name }}
+            # actions/checkout deixa um header de auth (com o GITHUB_TOKEN padrão)
+            # configurado localmente, que tem prioridade sobre as credenciais da
+            # URL abaixo — precisa ser zerado nesta chamada pra valer o PAT.
+            git -c http.https://github.com/.extraheader= \
+              push "https://x-access-token:${{ secrets.COVERAGE_RATCHET_PAT }}@github.com/${{ github.repository }}.git" HEAD:${{ github.ref_name }}
           else
             echo "Cobertura sem mudanças; nada para commitar."
           fi
