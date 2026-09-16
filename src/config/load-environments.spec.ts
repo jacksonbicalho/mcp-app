@@ -25,15 +25,19 @@ import { getEnvironmentsPath, listEnvironmentNames, loadEnvironments, readEnviro
 const environmentsPath = getEnvironmentsPath();
 const dotEnvPath = path.join(path.dirname(environmentsPath), '.env');
 
-function mockEnvironmentsFile(content: string | null, dotEnvContent?: string | null) {
+// dotEnvContent tem default `null` (em vez de `undefined` + delegar pro fs
+// real) de propósito: um `.env` real na máquina de quem roda os testes não
+// pode decidir se o branch existsSync(.env) é coberto ou não — isso já causou
+// uma cobertura de branch que passava local e falhava no CI (sem .env).
+function mockEnvironmentsFile(content: string | null, dotEnvContent: string | null = null) {
   mockExistsSync.mockImplementation((p: unknown) => {
     if (p === environmentsPath) return content !== null;
-    if (dotEnvContent !== undefined && p === dotEnvPath) return dotEnvContent !== null;
+    if (p === dotEnvPath) return dotEnvContent !== null;
     return actualFs.existsSync(p as never);
   });
   mockReadFileSync.mockImplementation((p: unknown, opts?: unknown) => {
     if (p === environmentsPath) return content as string;
-    if (dotEnvContent !== undefined && p === dotEnvPath) return dotEnvContent as string;
+    if (p === dotEnvPath) return dotEnvContent as string;
     return actualFs.readFileSync(p as never, opts as never) as unknown as string;
   });
 }
@@ -130,6 +134,17 @@ describe('load-environments', () => {
       loadEnvironments();
 
       expect(process.env.DB_HOST).toBe('ja-existia');
+    });
+
+    it('mescla variáveis definidas em .env quando o arquivo existe', () => {
+      mockEnvironmentsFile(JSON.stringify({ development: {} }), 'MCP_SERVER_NAME=do-dotenv\n');
+      process.env.APP_ENV = 'development';
+      delete process.env.MCP_SERVER_NAME;
+      jest.spyOn(console, 'error').mockImplementation(() => undefined);
+
+      loadEnvironments();
+
+      expect(process.env.MCP_SERVER_NAME).toBe('do-dotenv');
     });
   });
 });
