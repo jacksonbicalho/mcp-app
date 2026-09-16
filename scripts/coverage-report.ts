@@ -69,27 +69,15 @@ interface ShieldsEndpointBadge {
   color: string;
 }
 
-/** Um JSON no schema de "endpoint badge" do shields.io por métrica — ver https://shields.io/endpoint. */
-export function buildCoverageBadges(total: FileCoverage): Record<string, ShieldsEndpointBadge> {
-  const metrics: { key: keyof FileCoverage; label: string }[] = [
-    { key: 'statements', label: 'statements' },
-    { key: 'branches', label: 'branches' },
-    { key: 'functions', label: 'functions' },
-    { key: 'lines', label: 'lines' },
-  ];
+/** Um único JSON no schema de "endpoint badge" do shields.io — média das 4 métricas — ver https://shields.io/endpoint. */
+export function buildCoverageBadge(total: FileCoverage): ShieldsEndpointBadge {
+  const pcts = [total.statements.pct, total.branches.pct, total.functions.pct, total.lines.pct];
+  const average = pcts.reduce((sum, pct) => sum + pct, 0) / pcts.length;
 
-  return Object.fromEntries(
-    metrics.map(({ key, label }) => {
-      const pct = total[key].pct;
-      return [
-        label,
-        {
-          schemaVersion: 1,
-          label,
-          message: `${pct.toFixed(2)}%`,
-          color: getBadgeColor(pct),
-        },
-      ];
-    }),
-  );
+  return {
+    schemaVersion: 1,
+    label: 'coverage',
+    message: `${average.toFixed(2)}%`,
+    color: getBadgeColor(average),
+  };
 }
