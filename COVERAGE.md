@@ -1,6 +1,6 @@
 # Cobertura de testes
 
-Gerado automaticamente por `yarn test:cov` em 16/09/2026 03:55:31 — não editar manualmente.
+Gerado automaticamente por `yarn test:cov` em 16/09/2026 04:07:45 — não editar manualmente.
 
 Status|Arquivo|% Stmts|% Branch|% Funcs|% Lines
 --|--|--|--|--|--
