@@ -1,0 +1,50 @@
+{
+  "development": {
+    "DB_HOST": "postgres-dev",
+    "DB_PORT": "5432",
+    "DB_DATABASE": "app_db",
+    "DB_USERNAME": "app_user",
+    "DB_PASSWORD": "your_dev_password",
+    "APP_PATH": "/projetos/app",
+    "JIRA_BASE_URL": "https://seu-dominio.atlassian.net",
+    "JIRA_EMAIL": "seu-email@exemplo.com",
+    "JIRA_API_TOKEN": "seu_api_token_dev",
+    "KIBANA_BASE_URL": "http://kibana.internal.example:5601",
+    "KIBANA_INDEX_PATTERN": "app*",
+    "GITLAB_BASE_URL": "https://code.example.com",
+    "GITLAB_TOKEN": "seu_glpat_token_dev",
+    "GITLAB_PROJECT_PATH": "apps/example/services/app"
+  },
+  "staging": {
+    "DB_HOST": "postgres-staging",
+    "DB_PORT": "5432",
+    "DB_DATABASE": "app_db",
+    "DB_USERNAME": "app_user",
+    "DB_PASSWORD": "your_staging_password",
+    "APP_PATH": "/projetos/app",
+    "JIRA_BASE_URL": "https://seu-dominio.atlassian.net",
+    "JIRA_EMAIL": "seu-email@exemplo.com",
+    "JIRA_API_TOKEN": "seu_api_token_staging",
+    "KIBANA_BASE_URL": "http://kibana.internal.example:5601",
+    "KIBANA_INDEX_PATTERN": "app*",
+    "GITLAB_BASE_URL": "https://code.example.com",
+    "GITLAB_TOKEN": "seu_glpat_token_staging",
+    "GITLAB_PROJECT_PATH": "apps/example/services/app"
+  },
+  "production": {
+    "DB_HOST": "postgres-prod",
+    "DB_PORT": "5432",
+    "DB_DATABASE": "app_db",
+    "DB_USERNAME": "app_user",
+    "DB_PASSWORD": "your_prod_password",
+    "APP_PATH": "/projetos/app"
+  },
+  "local": {
+    "DB_HOST": "localhost",
+    "DB_PORT": "5432",
+    "DB_DATABASE": "app_db",
+    "DB_USERNAME": "root",
+    "DB_PASSWORD": "root",
+    "APP_PATH": "/projetos/app"
+  }
+}

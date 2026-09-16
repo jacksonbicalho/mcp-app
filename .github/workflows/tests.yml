@@ -1,0 +1,54 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Enable Corepack (fixa a versão do yarn definida em packageManager)
+        run: corepack enable
+
+      - name: Instalar dependências
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Formatação (Prettier)
+        run: yarn format
+
+      - name: Build
+        run: yarn build
+
+      - name: Testes com cobertura (aplica o ratchet de coverage.config.json)
+        run: yarn test:cov
+
+      # coverage.config.json e COVERAGE.md são atualizados localmente pelo
+      # teardown do Jest quando a cobertura sobe (ver scripts/coverage-teardown.ts).
+      # Esse passo commita essa atualização de volta — só em push direto (não em
+      # PR, onde não faz sentido/nem sempre há permissão de escrita).
+      - name: Commitar ratchet de cobertura atualizado
+        if: github.event_name == 'push'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add coverage.config.json COVERAGE.md
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: atualiza threshold de cobertura [skip ci]"
+            git push origin HEAD:${{ github.ref_name }}
+          else
+            echo "Cobertura sem mudanças; nada para commitar."
+          fi

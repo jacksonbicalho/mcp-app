@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "mcp-app": {
+      "command": "node",
+      "args": ["/projetos/mcp-app/dist/main.js"],
+      "cwd": "/projetos/mcp-app"
+    }
+  }
+}
