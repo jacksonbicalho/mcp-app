@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -35,6 +36,19 @@ jobs:
 
       - name: Testes com cobertura (aplica o ratchet de coverage.config.json)
         run: yarn test:cov
+
+      # Se lint/formatação/build/testes falharem neste PR, fecha o PR
+      # automaticamente em vez de deixá-lo pendente — a intenção é forçar
+      # reabertura de um PR novo já corrigido, em vez de reaproveitar este.
+      - name: Fechar PR automaticamente se o CI falhou
+        if: failure() && github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --repo "${{ github.repository }}" \
+            --body "❌ O CI falhou (lint, formatação, build ou testes). Fechando este PR automaticamente — corrija e abra um novo PR."
+          gh pr close "${{ github.event.pull_request.number }}" --repo "${{ github.repository }}"
 
       # coverage.config.json e COVERAGE.md são atualizados localmente pelo
       # teardown do Jest quando a cobertura sobe (ver scripts/coverage-teardown.ts).
