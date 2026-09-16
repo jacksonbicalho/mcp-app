@@ -74,7 +74,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.COVERAGE_RATCHET_PAT }}
         run: |
-          git add coverage.config.json COVERAGE.md
+          git add coverage.config.json COVERAGE.md .github/badges
           if git diff --cached --quiet -- coverage.config.json; then
             echo "Threshold de cobertura sem mudança; nada para commitar."
             exit 0

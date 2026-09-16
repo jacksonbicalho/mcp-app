@@ -18,6 +18,12 @@ function getStatus(pct: number): string {
   return '🟢';
 }
 
+function getBadgeColor(pct: number): string {
+  if (pct < 50) return 'red';
+  if (pct < 80) return 'yellow';
+  return 'brightgreen';
+}
+
 function relativePath(absolutePath: string, rootDir: string): string {
   return absolutePath.startsWith(rootDir + '/') ? absolutePath.slice(rootDir.length + 1) : absolutePath;
 }
@@ -54,4 +60,36 @@ export function buildCoverageMarkdown(summary: CoverageSummary, rootDir: string,
     .map(([absolutePath, cov]) => formatRow(relativePath(absolutePath, rootDir), cov, relativePath(absolutePath, rootDir)));
 
   return [...header, formatRow('Total', total), ...rows].join('\n') + '\n';
+}
+
+interface ShieldsEndpointBadge {
+  schemaVersion: 1;
+  label: string;
+  message: string;
+  color: string;
+}
+
+/** Um JSON no schema de "endpoint badge" do shields.io por métrica — ver https://shields.io/endpoint. */
+export function buildCoverageBadges(total: FileCoverage): Record<string, ShieldsEndpointBadge> {
+  const metrics: { key: keyof FileCoverage; label: string }[] = [
+    { key: 'statements', label: 'statements' },
+    { key: 'branches', label: 'branches' },
+    { key: 'functions', label: 'functions' },
+    { key: 'lines', label: 'lines' },
+  ];
+
+  return Object.fromEntries(
+    metrics.map(({ key, label }) => {
+      const pct = total[key].pct;
+      return [
+        label,
+        {
+          schemaVersion: 1,
+          label,
+          message: `${pct.toFixed(2)}%`,
+          color: getBadgeColor(pct),
+        },
+      ];
+    }),
+  );
 }
